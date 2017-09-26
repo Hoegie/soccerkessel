@@ -2,6 +2,7 @@ var express    = require('express');
 var mysql      = require('mysql');
 var bodyParser = require('body-parser');
 var join = require('path').join;
+var fs = require('fs');
 var http = require('http');
 var https = require('https');
 var path = require('path');
