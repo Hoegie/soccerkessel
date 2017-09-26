@@ -5,18 +5,17 @@ var join = require('path').join;
 var http = require('http');
 var path = require('path');
 var connection = mysql.createConnection({
-  host     : process.env.OPENSHIFT_MYSQL_DB_HOST,
-  port     : process.env.OPENSHIFT_MYSQL_DB_PORT,
-  user     : 'admingXIqSRT',
-  password : 'HwnYTjTjC1fN',
+  host     : '127.0.0.1',
+  user     : 'root',
+  password : 'Hoegaarden',
   database : 'soccerKessel'
 });
 
 var app = express();
 
 
-  app.set('port', process.env.OPENSHIFT_NODEJS_PORT || 3000);
-  app.set('ipaddress', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
+  app.set('port', process.env.PORT || 4000);
+  app.set('porthttps', 4001);
   app.use(bodyParser.urlencoded({ extended: false}));
   app.use(bodyParser.json());
 
@@ -584,9 +583,15 @@ connection.query('SELECT teams.teamname, teams.team_ID, CONVERT((SELECT COUNT(re
 });
 
 
+  http.createServer(app).listen(app.get('port'), function(){
+  console.log("Express server listening on port " + app.get('port'));
+});
 
 
-  http.createServer(app).listen(app.get('port'), app.get('ipaddress'), function(){
-  console.log("Express server listening on port " + app.get('ipaddress') + app.get('port'));
-  console.log("MYSQL db on " + process.env.OPENSHIFT_MYSQL_DB_HOST + " : " + process.env.OPENSHIFT_MYSQL_DB_PORT);
+https.createServer({
+            key: fs.readFileSync("/etc/letsencrypt/live/appskberlaar.be/privkey.pem"),
+            cert: fs.readFileSync("/etc/letsencrypt/live/appskberlaar.be/fullchain.pem"),
+            ca: fs.readFileSync("/etc/letsencrypt/live/appskberlaar.be/chain.pem")
+     }, app).listen(app.get('porthttps'), function(){
+  console.log("Express SSL server listening on port " + app.get('porthttps'));
 });
