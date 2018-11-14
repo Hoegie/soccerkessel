@@ -187,6 +187,57 @@ connection.query('SELECT games.game_id, games.hometeamid, CONVERT(DATE_FORMAT(ga
 });
 
 
+app.post("/games/referees/series/teamid/year",function(req,res){
+  console.log("games query gehit")
+  var seriessearchstring;
+  var teamsearchstring;
+  var yearsearchstring;
+  var refereesearchstring;
+
+  console.log(req.body);
+  console.log(req.body[0]);
+
+
+  if (req.body[0].series == "All") {
+    seriessearchstring = "%";
+  } else {
+    seriessearchstring = req.body[0].series;
+  }
+  if (req.body[0].teamid == "1000") {
+    teamsearchstring = "%";
+  } else {
+    teamsearchstring = req.body[0].teamid;
+  }
+  if (req.body[0].year == "Beide") {
+    yearsearchstring = "%";
+  } else {
+    yearsearchstring = req.body[0].year;
+  }
+  if (req.body[0].refereeid == "All"){
+    refereesearchstring = "%";
+  } else {
+    refereesearchstring = req.body[0].refereeid;
+  }
+
+  var data = {
+        series: seriessearchstring,
+        teamid: teamsearchstring,
+        year: yearsearchstring,
+        matchtype: req.body[0].matchtype,
+        refereeid: refereesearchstring
+    };
+    console.log(data);
+connection.query('SELECT games.game_id, games.hometeamid, CONVERT(DATE_FORMAT(games.date,"%d-%m-%Y"), CHAR(50)) as gamedate, CONVERT(DATE_FORMAT(games.date,"%H:%i"), CHAR(50)) as gametime ,games.series, games.matchtype, games.refereeid, hometeam.teamname as hometeamname, awayteam.teamname as awayteamname, COALESCE(results.homegoals, 1000) as homegoals, COALESCE(results.awaygoals, 1000) as awaygoals, CONVERT(COALESCE(results.result_ID, "none"), CHAR(50)) as result_ID, COALESCE(CONCAT(referees.name, " ", referees.lastname), "none") as refereename FROM `games` LEFT JOIN results ON games.game_ID = results.gameid JOIN teams AS hometeam ON games.hometeamid = hometeam.team_ID JOIN teams AS awayteam ON games.awayteamid = awayteam.team_ID LEFT JOIN referees ON games.refereeid = referees.referee_ID WHERE (games.series LIKE ?) AND (games.hometeamid LIKE ? OR games.awayteamid LIKE ?) AND (YEAR(games.date) LIKE ?) AND (matchtype = ?) AND (games.refereeid LIKE ?) ORDER BY games.date ASC', [data.series, data.teamid, data.teamid, data.year, data.matchtype, data.refereeid], function(err, rows, fields) {
+/*connection.end();*/
+  if (!err){
+    console.log('The solution is: ', rows);
+    res.end(JSON.stringify(rows));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
+
 
 app.get("/games/all",function(req,res){
 connection.query('SELECT games.game_id, CONVERT(DATE_FORMAT(games.date,"%d-%m-%Y"), CHAR(50)) as gamedate, CONVERT(DATE_FORMAT(games.date,"%H:%i"), CHAR(50)) as gametime ,games.series, games.matchtype, hometeam.teamname as hometeamname, awayteam.teamname as awayteamname, COALESCE(results.homegoals, 1000) as homegoals, COALESCE(results.awaygoals, 1000) as awaygoals FROM `games` LEFT JOIN results ON games.game_ID = results.gameid JOIN teams AS hometeam ON games.hometeamid = hometeam.team_ID JOIN teams AS awayteam ON games.awayteamid = awayteam.team_ID ORDER BY games.date ASC', function(err, rows, fields) {
@@ -276,6 +327,23 @@ app.put("/games/date/:gameid",function(req,res){
   var connquery = "UPDATE games SET date = STR_TO_DATE('" + put.date + "','%d-%m-%Y  %H:%i') WHERE game_ID = " + req.params.gameid;
   console.log(connquery)
 connection.query(connquery,[put, req.params.id], function(err,result) {
+  if (!err){
+    console.log(result);
+    res.end(JSON.stringify(result));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
+
+app.put("/games/referee/:gameid",function(req,res){
+  var put = {
+        refereeid: req.body.refereeid,
+    };
+    console.log(put);
+    console.log(req.params.gameid);
+  
+connection.query('UPDATE games SET ? WHERE game_ID = ?',[put, req.params.gameid], function(err,result) {
   if (!err){
     console.log(result);
     res.end(JSON.stringify(result));
@@ -463,6 +531,71 @@ connection.query('DELETE FROM players WHERE player_ID = ?', data.playerid, funct
   });
 });
 
+
+/*REFEREES*/
+
+app.get("/referees/all",function(req,res){
+connection.query('SELECT * from referees', function(err, rows, fields) {
+  if (!err){
+    console.log('The solution is: ', rows);
+    res.end(JSON.stringify(rows));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
+
+app.get("/referees/refereeid/:refereeid",function(req,res){
+connection.query("SELECT CONCAT(name, ' ', lastname) as refereename from referees WHERE referee_ID = ?",req.params.refereeid, function(err, rows, fields) {
+  if (!err){
+    console.log('The solution is: ', rows);
+    res.end(JSON.stringify(rows));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
+
+app.post("/referees/new",function(req,res){
+  var post = {
+        name: req.body.name,
+        lastname: req.body.lastname,
+        emailaddress: req.body.emailaddress,
+        phone: req.body.phone
+    };
+    console.log(post);
+connection.query('INSERT INTO referees SET ?', post, function(err,result) {
+/*connection.end();*/
+  if (!err){
+    console.log(result);
+    res.end(JSON.stringify(result));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
+
+app.put("/referees/refereeid/:refereeid",function(req,res){
+  var put = {
+        name: req.body.name,
+        lastname: req.body.lastname,
+        emailaddress: req.body.emailaddress,
+        phone: req.body.phone,
+        imageurl: req.body.imageurl
+    };
+    console.log(put);
+connection.query('UPDATE referees SET ? WHERE referee_ID = ?',[put, req.params.refereeid], function(err,result) {
+/*connection.end();*/
+  if (!err){
+    console.log(result);
+    res.end(JSON.stringify(result));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
+
+
 /*GOALS*/
 
 app.get("/goals/gameid/teamid/playerid/:gameid/:teamid:/playerid",function(req,res){
@@ -581,6 +714,58 @@ connection.query('SELECT teams.teamname, teams.team_ID, CONVERT((SELECT COUNT(re
   }
   });
 });
+
+
+
+/*FILE UPLOAD*/
+
+app.post("/image/android/upload",function(req,res){
+
+console.log(req.body.picurl);
+console.log(req.body.photo);
+//res.end(JSON.stringify("success"));
+
+var imageBuffer = new Buffer(req.body.photo, 'base64');
+fs.writeFile("/var/www/html/zaalkessel/images/" + req.body.picurl, imageBuffer, function(err) { 
+  res.end(JSON.stringify("success"));
+});
+
+});
+
+
+app.post("/image/delete",function(req,res){
+
+var imageName = req.body.imagename;
+//var fullImageName = '/var/www/html/' + apachedir + '/images/' + imageName;
+var fullImageName = '/var/www/html/zaalkessel/images/' + imageName
+console.log(fullImageName);
+
+fs.unlink(fullImageName, function(error){
+
+  if (!error){
+    console.log('Image deleted');
+    var outputArray = [];
+    var outputDic = {
+    response: 'Success'
+    };
+    outputArray.push(outputDic);
+    res.end(JSON.stringify(outputDic));
+  } else {
+    console.log('Image deleted failed !');
+    console.log(error);
+    var outputArray = [];
+    var outputDic = {
+    response: 'Failure'
+    };
+    outputArray.push(outputDic);
+    res.end(JSON.stringify(outputDic));
+  }
+
+});
+
+});
+
+
 
 
   http.createServer(app).listen(app.get('port'), function(){
