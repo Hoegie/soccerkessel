@@ -13,7 +13,6 @@ var connection = mysql.createConnection({
   database : 'soccerKessel'
 });
 
-
 var app = express();
 
   app.set('port', process.env.PORT || 4000);
