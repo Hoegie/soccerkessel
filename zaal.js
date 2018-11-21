@@ -195,6 +195,57 @@ app.post("/games/referees/series/teamid/year",function(req,res){
   var refereesearchstring;
 
   console.log(req.body);
+
+
+  if (req.body.series == "All") {
+    seriessearchstring = "%";
+  } else {
+    seriessearchstring = req.body.series;
+  }
+  if (req.body.teamid == "1000") {
+    teamsearchstring = "%";
+  } else {
+    teamsearchstring = req.body.teamid;
+  }
+  if (req.body.year == "Beide") {
+    yearsearchstring = "%";
+  } else {
+    yearsearchstring = req.body.year;
+  }
+  if (req.body.refereeid == "All"){
+    refereesearchstring = "%";
+  } else {
+    refereesearchstring = req.body.refereeid;
+  }
+
+  var data = {
+        series: seriessearchstring,
+        teamid: teamsearchstring,
+        year: yearsearchstring,
+        matchtype: req.body.matchtype,
+        refereeid: refereesearchstring
+    };
+    console.log(data);
+connection.query('SELECT games.game_id, games.hometeamid, CONVERT(DATE_FORMAT(games.date,"%d-%m-%Y"), CHAR(50)) as gamedate, CONVERT(DATE_FORMAT(games.date,"%H:%i"), CHAR(50)) as gametime ,games.series, games.matchtype, games.refereeid, hometeam.teamname as hometeamname, awayteam.teamname as awayteamname, COALESCE(results.homegoals, 1000) as homegoals, COALESCE(results.awaygoals, 1000) as awaygoals, CONVERT(COALESCE(results.result_ID, "none"), CHAR(50)) as result_ID, COALESCE(CONCAT(referees.name, " ", referees.lastname), "none") as refereename FROM `games` LEFT JOIN results ON games.game_ID = results.gameid JOIN teams AS hometeam ON games.hometeamid = hometeam.team_ID JOIN teams AS awayteam ON games.awayteamid = awayteam.team_ID LEFT JOIN referees ON games.refereeid = referees.referee_ID WHERE (games.series LIKE ?) AND (games.hometeamid LIKE ? OR games.awayteamid LIKE ?) AND (YEAR(games.date) LIKE ?) AND (matchtype = ?) AND (games.refereeid LIKE ?) ORDER BY games.date ASC', [data.series, data.teamid, data.teamid, data.year, data.matchtype, data.refereeid], function(err, rows, fields) {
+/*connection.end();*/
+  if (!err){
+    console.log('The solution is: ', rows);
+    res.end(JSON.stringify(rows));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
+
+
+app.post("/games/referees/series/teamid/year/android",function(req,res){
+  console.log("games query gehit")
+  var seriessearchstring;
+  var teamsearchstring;
+  var yearsearchstring;
+  var refereesearchstring;
+
+  console.log(req.body);
   console.log(req.body[0]);
 
 
