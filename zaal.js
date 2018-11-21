@@ -6,6 +6,7 @@ var fs = require('fs');
 var http = require('http');
 var https = require('https');
 var path = require('path');
+var formidable = require('formidable');
 var connection = mysql.createConnection({
   host     : '127.0.0.1',
   user     : 'root',
@@ -769,6 +770,36 @@ connection.query('SELECT teams.teamname, teams.team_ID, CONVERT((SELECT COUNT(re
 
 
 /*FILE UPLOAD*/
+
+app.post("/image/upload",function(req,res){
+
+var form = new formidable.IncomingForm();
+var fileNameImage = "";
+form.uploadDir = '/var/www/html/zaalkessel/images/';
+console.log("file uploading ...");
+
+form.parse(req,function(err, fields, files){
+  console.log(fields);
+  console.log("filename : ");
+  console.log(fields.picURL);
+  fileNameImage = fields.picURL;
+  //fileNameImage = fileNameImage + '.png';
+  fs.rename(files.file.path, path.join(form.uploadDir, fileNameImage), function(err){
+
+  });
+
+});
+
+form.on('error', function(err){
+  console.log('An error has occured : \n' + err);
+});
+
+form.on('end', function(){
+  res.end(JSON.stringify("success"));
+});
+
+});
+
 
 app.post("/image/android/upload",function(req,res){
 
