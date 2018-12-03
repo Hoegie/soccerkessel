@@ -649,10 +649,10 @@ connection.query('UPDATE referees SET ? WHERE referee_ID = ?',[put, req.params.r
 
 app.delete("/referees/:refereeid",function(req,res){
   var data = {
-        prefereeid: req.params.refereeid
+        refereeid: req.params.refereeid
     };
-    console.log(data.id);
-connection.query('DELETE FROM players WHERE referee_ID = ?', data.refereeid, function(err,result) {
+    console.log(data.refereeid);
+connection.query('DELETE FROM referees WHERE referee_ID = ?', data.refereeid, function(err,result) {
 /*connection.end();*/
   if (!err){
     console.log(result);
