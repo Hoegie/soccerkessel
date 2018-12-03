@@ -657,6 +657,16 @@ connection.query('DELETE FROM players WHERE referee_ID = ?', data.refereeid, fun
   if (!err){
     console.log(result);
     res.end(JSON.stringify(result));
+
+    connection.query('UPDATE games SET refereeid = 0 WHERE refereeid = ?', data.refereeid, function(err,result) {
+  if (!err){
+    console.log(result);
+    //res.end(JSON.stringify(result));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+
   }else{
     console.log('Error while performing Query.');
   }
