@@ -647,6 +647,21 @@ connection.query('UPDATE referees SET ? WHERE referee_ID = ?',[put, req.params.r
   });
 });
 
+app.delete("/referees/:refereeid",function(req,res){
+  var data = {
+        prefereeid: req.params.refereeid
+    };
+    console.log(data.id);
+connection.query('DELETE FROM players WHERE referee_ID = ?', data.refereeid, function(err,result) {
+/*connection.end();*/
+  if (!err){
+    console.log(result);
+    res.end(JSON.stringify(result));
+  }else{
+    console.log('Error while performing Query.');
+  }
+  });
+});
 
 /*GOALS*/
 
